@@ -1,0 +1,88 @@
+routes:
+  - path: /api/users
+    methods:
+      - method: GET
+        response:
+          status: success
+          data:
+            - id: 1
+              name: "Иван"
+              email: "ivan@example.com"
+            - id: 2
+              name: "Петр"
+              email: "petr@example.com"
+      - method: POST
+        request_schema:
+          type: object
+          properties:
+            name:
+              type: string
+            email:
+              type: string
+          required: [name, email]
+        response:
+          status: success
+          message: "Пользователь создан"
+          data:
+            id: 1
+            name: "Иван"
+            email: "ivan@example.com"
+
+  - path: /api/products
+    methods:
+      - method: GET
+        response:
+          status: success
+          data:
+            - id: 1
+              name: "Телефон"
+              price: 1000
+            - id: 2
+              name: "Ноутбук"
+              price: 2000
+      - method: POST
+        request_schema:
+          type: object
+          properties:
+            name:
+              type: string
+            price:
+              type: number
+          required: [name, price]
+        response:
+          status: success
+          message: "Товар создан"
+          data:
+            id: 1
+            name: "Телефон"
+            price: 1000
+
+  - path: /api/orders
+    methods:
+      - method: GET
+        response:
+          status: success
+          data:
+            - id: 1
+              user_id: 1
+              products: [1, 2]
+              total: 3000
+      - method: POST
+        request_schema:
+          type: object
+          properties:
+            user_id:
+              type: integer
+            products:
+              type: array
+              items:
+                type: integer
+          required: [user_id, products]
+        response:
+          status: success
+          message: "Заказ создан"
+          data:
+            id: 1
+            user_id: 1
+            products: [1, 2]
+            total: 3000 

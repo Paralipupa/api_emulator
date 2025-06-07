@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["python", "-m", "debugpy", "--listen", "0.0.0.0:5694", "app.py"]
+    container_name: social-api-server
+    ports:
+      - "8000:8000"
+      - "5694:5694"
+    volumes:
+      - ./:/app/
+    environment:
+      - PYTHONUNBUFFERED=1
+      - VIRTUAL_HOST=avito.net
+      - VIRTUAL_PORT=8000
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s 
+
+networks:
+  default:
+    name: nginx-proxy
+    external: true

@@ -1,0 +1,70 @@
+routes:
+  - path: /token
+    methods:
+      - method: POST
+        content_type: application/x-www-form-urlencoded
+        request_schema:
+          type: object
+          properties:
+            grant_type:
+              type: string
+              enum: [authorization_code, refresh_token]
+              description: "Тип запрашиваемого гранта"
+            client_id:
+              type: string
+              description: "Идентификатор клиента"
+            client_secret:
+              type: string
+              description: "Секретный ключ клиента"
+            code:
+              type: string
+              description: "Код авторизации (требуется для grant_type=authorization_code)"
+            refresh_token:
+              type: string
+              description: "Токен обновления (требуется для grant_type=refresh_token)"
+          required: [grant_type, client_id, client_secret]
+          allOf:
+            - if:
+                properties:
+                  grant_type:
+                    const: authorization_code
+              then:
+                required: [code]
+            - if:
+                properties:
+                  grant_type:
+                    const: password
+              then:
+                required: [username, password]
+            - if:
+                properties:
+                  grant_type:
+                    const: refresh_token
+              then:
+                required: [refresh_token]
+        response:
+          access_token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          expires_in: 3600
+          refresh_token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          scope: "messenger:read,messenger:write"
+          token_type: "Bearer"
+
+  - path: /api/auth/logout
+    methods:
+      - method: POST
+        response:
+          status: success
+          message: "Успешный выход из системы"
+
+  - path: /api/auth/refresh
+    methods:
+      - method: POST
+        request_schema:
+          type: object
+          properties:
+            refresh_token:
+              type: string
+          required: [refresh_token]
+        response:
+          status: success
+          token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." 

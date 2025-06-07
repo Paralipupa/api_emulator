@@ -1,0 +1,58 @@
+routes:
+  - path: /oauth
+    methods:
+      - method: GET
+        response:
+          status: success
+          token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        webhook:
+          enabled: true
+          data_mapping:
+            user_created:
+              url: "{webhook_url}"
+  - path: /api/webhooks/trigger
+    methods:
+      - method: GET
+        request_schema:
+          type: object
+          properties:
+            type:
+              type: string
+              enum: ["user_created", "order_created", "payment_received"]
+            webhook_url:
+              type: string
+              format: uri
+          required: [type, webhook_url]
+        response:
+          status: success
+          message: "Webhook отправлен"
+        webhook:
+          enabled: true
+          data_mapping:
+            user_created:
+              url: "{webhook_url}"
+              data:
+                event: "user.created"
+                timestamp: "{current_timestamp}"
+                user:
+                  id: 1
+                  name: "Иван"
+                  email: "ivan@example.com"
+            order_created:
+              url: "{webhook_url}"
+              data:
+                event: "order.created"
+                timestamp: "{current_timestamp}"
+                order:
+                  id: 1
+                  total: 1000
+                  items: [1, 2, 3]
+            payment_received:
+              url: "{webhook_url}"
+              data:
+                event: "payment.received"
+                timestamp: "{current_timestamp}"
+                payment:
+                  id: 1
+                  amount: 1000
+                  status: "completed" 
