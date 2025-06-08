@@ -11,6 +11,7 @@ routes:
             - id: 2
               name: "Петр"
               email: "petr@example.com"
+            - createdAt: "{current_timestamp}"
       - method: POST
         request_schema:
           type: object

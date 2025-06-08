@@ -1,0 +1,79 @@
+routes:
+# Отправка ответа на отзыв
+  - path: /ratings/v1/answer
+    methods:
+      - method: POST
+        content_type: application/json
+        request_schema:
+          type: object
+          properties:
+            message:
+              type: string
+              description: "Ответ на отзыв"
+            reviewId:
+              type: int
+              description: "Идентификатор отзыва"
+          required: [message, reviewId]
+        response:
+          createdAt: 
+            value: "{$current_timestamp}" 
+            type: int
+          id: 
+            value: "{$random_code}"
+            type: int
+
+# Запрос на удаление ответа на отзыв
+  - path: /ratings/v1/answer/{reviewId}
+    methods:
+      - method: DELETE
+        content_type: application/json
+        response:
+          success: true
+
+# Получение списка активных отзывов на пользователя с пагинацией
+  - path: /ratings/v1/reviews
+    methods:
+      - method: GET
+        content_type: application/json
+        response:
+          reviews:
+            - answer:
+                createdAt: 
+                  value: "{$current_timestamp}" 
+                  type: int
+                id: 
+                  value: "{$random_code}"
+                  type: int
+                reject_reasons:
+                  - id: 
+                      value: "{$random_code}"
+                      type: int
+                    title: "Нецензурная лексика"
+                status: "published"
+                text: "Спасибо за отзыв!"
+              canAnswer: true
+              createdAt: 
+                value: "{$current_timestamp}"
+                type: int
+              extraParams:
+                vin: "4Y1SL65848Z411439"
+              id:
+                value: "{$random_code}"
+                type: int
+              images:
+                - number: 1
+                  sizes:
+                    - size: "100x100"
+                      url: "http://img.avito.ru/100x100/4Y1SL65848Z411439.jpg"
+              item:
+                id:
+                  value: "{$random_code}"
+                  type: int
+                title: "Автомобиль 2020-го года"
+              score: 5
+              sender:
+                name: "Владимир"
+              stage: "fell_through"
+              text: "Отличный продавец! Рекомендую :)"
+              usedInScore: true
+          total: 35

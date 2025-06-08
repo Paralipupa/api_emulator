@@ -1,0 +1,34 @@
+routes:
+# Получение информации по объявлениям
+
+  - path: /core/v1/items
+    methods:
+      - method: GET
+        request_schema:
+          type: object
+          properties: 
+            per_page:
+              type: int
+            page:
+              type: int
+            status:
+              type: string
+            updatedAtFrom:
+              type: string
+              format: "%Y-%m-%d"
+            category:
+              type: int
+        response:
+          meta:
+            page: 1
+            per_page: 25
+          resources:
+            - address: "Москва, Лесная улица 7"
+              category:
+                id: 111
+                name: "Вакансии"
+              id: 24122231
+              price: 35000
+              status: "active"
+              title: "Продавец-кассир"
+              url: "https://www.avito.ru/rostov-na-donu/vakansii/prodavets_magazina_2142" 

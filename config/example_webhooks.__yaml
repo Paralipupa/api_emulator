@@ -1,15 +1,4 @@
 routes:
-  - path: /oauth
-    methods:
-      - method: GET
-        response:
-          status: success
-          token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-        webhook:
-          enabled: true
-          data_mapping:
-            user_created:
-              url: "{webhook_url}"
   - path: /api/webhooks/trigger
     methods:
       - method: GET

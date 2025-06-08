@@ -1,0 +1,250 @@
+routes:
+  # Отправка текстового сообщения
+  - path: /messenger/v1/accounts/{user_id}/chats/{chat_id}/messages
+    methods:
+      - method: POST
+        content_type: application/json
+        request_schema:
+          type: object
+          properties:
+            message:
+              text:
+                type: string
+                description: "Ответ на отзыв"
+            type:
+              type: string
+              enum: [text]
+              description: "Тип отзыва"
+          required: [message, type, message.text]
+        response:
+          content:
+            text: "привет"
+          created: 
+            value: "{$current_timestamp}" 
+            type: int
+          direction: "out"
+          id: "{$hash}"
+          type: "text"
+
+# Отправка сообщения с изображением
+  - path: /messenger/v1/accounts/{user_id}/chats/{chat_id}/messages/image
+    methods:
+      - method: POST
+        content_type: application/json
+        request_schema:
+          type: object
+          properties:
+            image_id: 
+              type: string
+              description: "id картинки"
+          required: [image_id]
+        response:
+          author_id: 
+            value: "{$random_code}"
+            type: int
+          content:
+            image:
+              sizes:
+                1280x960: "https://example.hosts.ru/image_1280_960.png" 
+                140x105: "https://example.hosts.ru/image_140_105.png" 
+                32x32: "https://example.hosts.ru/image_32_32.png" 
+          created: 
+            value: "{$current_timestamp}"
+            type: int
+          direction: "out"
+          id: "{$hash}"
+          type: "image"
+
+# Удаление сообщения
+# Сообщение не пропадает из истории, а меняет свой тип на deleted. 
+# Удалять сообщения можно не позднее часа с момента их отправки.
+  - path: /messenger/v1/accounts/{user_id}/chats/{chat_id}/messages/{message_id}
+    methods:
+      - method: DELETE
+        content_type: application/json
+        response: {}
+
+# Прочитать чат
+# После успешного получения списка сообщений необходимо вызвать этот метод для того, чтобы чат стал прочитанным.
+  - path: /messenger/v1/accounts/{user_id}/chats/{chat_id}/read
+    methods:
+      - method: POST
+        content_type: application/json
+        response: 
+          ok: true
+
+# Получение голосовых сообщений
+  - path: /messenger/v1/accounts/{user_id}/getVoiceFiles
+    methods:
+      - method: GET
+        request_schema:
+          type: object
+          properties:
+            voice_ids:  
+              type: array
+              items:
+                type: string
+          required: [voice_ids]
+        response: 
+          voices_urls:
+            property1: "https://avito.ru/voice_url" 
+            property2: "https://avito.ru/voice_url" 
+
+# Загрузка изображений
+  - path: /messenger/v1/accounts/{user_id}/uploadImages
+    methods:
+      - method: POST
+        content_type: application/json
+        response: 
+          "12345.12345abcdefghijklm":
+            1280x960: "https://example.hosts.ru/image_1280_960.png" 
+            140x105: "https://example.hosts.ru/image_140_105.png" 
+            32x32: "https://example.hosts.ru/image_32_32.png" 
+
+# Получение подписок (webhooks)
+  - path: /messenger/v1/subscriptions
+    methods:
+      - method: POST
+        content_type: application/json
+        response: 
+          subscriptions:
+            - url: "http://abc"
+              version: "3"
+
+# Отключение уведомлений (webhooks)
+  - path: /messenger/v1/webhook/unsubscribe
+    methods:
+      - method: POST
+        content_type: application/json
+        request_schema:
+          type: object
+          properties:
+            url:  
+              type: string
+          required: [url]
+        response: 
+          ok: true
+
+# Включение уведомлений V3 (webhooks) 
+  - path: /messenger/v3/webhook
+    methods:
+      - method: POST
+        content_type: application/json
+        request_schema:
+          type: object
+          properties:
+            url:  
+              type: string
+          required: [url]
+        response: 
+          ok: true
+
+# Получение списка сообщений V3 
+  - path: /messenger/v3/accounts/{user_id}/chats/{chat_id}/messages/
+    methods:
+      - method: GET
+        content_type: application/json
+        request_schema:
+          type: object
+          properties:
+            limit:  
+              type: int
+            offset:  
+              type: int
+        response: 
+            - author_id: 94235311
+              content:
+                call:
+                  status: missed
+                  target_user_id: 94235311
+                flow_id: seller_audience_discount
+                image:
+                  sizes:
+                    1280x960: "https://img.k.avito.ru/chat/1280x960/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg" 
+                    140x105: "https://img.k.avito.ru/chat/140x105/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg" 
+                    32x32: "https://img.k.avito.ru/chat/32x32/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg" 
+                    640x480: "https://img.k.avito.ru/chat/640x480/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg" 
+                item:
+                  image_url: "https://avito.ru/image_url.webp" 
+                  item_url: "https://avito.ru/item_url" 
+                  price_string: "1 232 323 ₽"
+                  title: "Объявление"
+                link:
+                  preview:
+                    description: "Лучшие публикации за последние 24 часа"
+                    domain: "habr.com"
+                    images:
+                      1280x960: "https://img.k.avito.ru/chat/1280x960/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg" 
+                      140x105: "https://img.k.avito.ru/chat/140x105/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg" 
+                      32x32: "https://img.k.avito.ru/chat/32x32/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg" 
+                      640x480: "https://img.k.avito.ru/chat/640x480/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg" 
+                    title: "Лучшие публикации за сутки / Хабр"
+                    url: "https://habr.com/ru/" 
+                  text: "habr.com"
+                  url: "habr.com"
+                location:
+                  kind: street
+                  lat: 55.599799
+                  lon: 37.603954
+                  text: "Москва, Варшавское шоссе"
+                  title: "Москва, Варшавское шоссе"
+                text: "привет!"
+                voice:
+                  voice_id: "string"
+              created: 
+                value: "{$current_timestamp}"
+                type: int
+              direction: "out"
+              id: "{$hash}"
+              is_read: true
+              quote:
+                author_id: 
+                  value: "{$random_code}"
+                  type: int
+                content:
+                  call:
+                    status: missed
+                    target_user_id: 
+                      value: "{$random_code}"
+                      type: int
+                  flow_id: seller_audience_discount
+                  image:
+                    sizes:
+                      1280x960: "https://img.k.avito.ru/chat/1280x960/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg" 
+                      140x105: "https://img.k.avito.ru/chat/140x105/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg" 
+                      32x32: "https://img.k.avito.ru/chat/32x32/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg" 
+                      640x480: "https://img.k.avito.ru/chat/640x480/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg" 
+                  item:
+                    image_url: "https://avito.ru/image_url.webp" 
+                    item_url: "https://avito.ru/item_url" 
+                    price_string: "1 232 323 ₽"
+                    title: "Объявление"
+                  link:
+                    preview:
+                      description: "Лучшие публикации за последние 24 часа"
+                      domain: "habr.com"
+                      images:
+                        1280x960: "https://img.k.avito.ru/chat/1280x960/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg" 
+                        140x105: "https://img.k.avito.ru/chat/140x105/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg" 
+                        32x32: "https://img.k.avito.ru/chat/32x32/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg" 
+                        640x480: "https://img.k.avito.ru/chat/640x480/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg" 
+                      title: "Лучшие публикации за сутки / Хабр"
+                      url: "https://habr.com/ru/" 
+                    text: "habr.com"
+                    url: "habr.com"
+                  location:
+                    kind: street
+                    lat: 55.599799
+                    lon: 37.603954
+                    text: "Москва, Варшавское шоссе"
+                    title: "Москва, Варшавское шоссе"
+                  text: "привет!"
+                  voice:
+                    voice_id: "string"
+                created: 
+                  value: "{$current_timestamp}"
+                  type: int
+                id: "string"
+                type: "text"
+              read: 123
+              type: "text"
