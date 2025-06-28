@@ -89,8 +89,8 @@ def load_configs(config_dir: str = "config") -> Config:
     
     routes_dict: Dict[str, RouteConfig] = {}
 
-    
-    for yaml_file in config_path.rglob("*.yaml"):
+    configs =config_path.rglob("*.yaml")
+    for yaml_file in configs:
         try:
             logger.info(f"Загрузка конфигурации из файла: {yaml_file}")
             with open(yaml_file, "r", encoding="utf-8") as f:

@@ -19,12 +19,18 @@ class ValueTransformer(ABC):
 class TypedValueTransformer(ValueTransformer):
     """Преобразует словари с полями value и type, включая datetime"""
 
+    def __init__(self, path: str) -> None:
+        self.path = path
+        super().__init__()
+
     def can_transform(self, data: Dict) -> bool:
         return isinstance(data, dict) and "value" in data and "type" in data
 
     def transform(self, data: Dict, params: Dict) -> Any:
         # Сначала выполняем подстановку в value
-        processed_value = StringTemplateReplacer.replace(data["value"], params)
+        processed_value = StringTemplateReplacer.replace(
+            self.path, data["value"], params
+        )
 
         try:
             target_type = data["type"].lower()
@@ -51,7 +57,7 @@ class TypedValueTransformer(ValueTransformer):
             if format_str:
                 timestamp = float(value)
                 dt = datetime.fromtimestamp(timestamp)
-                return  dt.strftime(format_str)
+                return dt.strftime(format_str)
             return datetime.fromisoformat(value)
         elif isinstance(value, datetime):
             return value
@@ -62,7 +68,7 @@ class StringTemplateReplacer:
     """Заменяет шаблонные переменные в строках"""
 
     @staticmethod
-    def replace(data: Any, params: Dict) -> Any:
+    def replace(path:str, data: Any, params: Dict, **kwargs) -> Any:
         if not isinstance(data, str):
             return data
 
@@ -72,22 +78,23 @@ class StringTemplateReplacer:
         for func_name, func in AVAILABLE_FUNCTIONS.items():
             if f"{{${func_name}}}" in data:
                 if func_name == "token_pair":
-                    access_token, refresh_token = func()
+                    access_token, refresh_token = func(path=path, key=kwargs.get("key"))    
                     data = data.replace(
                         f"{{${func_name}}}", f"{access_token},{refresh_token}"
                     )
                 else:
-                    data = data.replace(f"{{${func_name}}}", func())
+                    data = data.replace(f"{{${func_name}}}", func(path=path, key=kwargs.get("key")))
 
         return data
 
 
 class DataProcessor:
-    """Обработчик данных с правильным порядком операций"""
+    """Обработчик данных"""
 
-    def __init__(self, params: Dict):
+    def __init__(self, path: str, params: Dict):
+        self.path = path
         self.params = params
-        self.transformers = [TypedValueTransformer()]
+        self.transformers = [TypedValueTransformer(path)]
 
     def process(self, data: Union[Dict, List, str]) -> Union[Dict, List, str]:
         # Сначала подстановка во всех данных
@@ -96,14 +103,14 @@ class DataProcessor:
         # Затем преобразование типов
         return self._transform_data(data)
 
-    def _replace_vars(self, data: Any) -> Any:
+    def _replace_vars(self, data: Any, **kwargs) -> Any:
         """Рекурсивная подстановка переменных"""
         if isinstance(data, dict):
-            return {k: self._replace_vars(v) for k, v in data.items()}
+            return {k: self._replace_vars(v, key=k) for k, v in data.items()}
         elif isinstance(data, list):
             return [self._replace_vars(item) for item in data]
         elif isinstance(data, str):
-            return StringTemplateReplacer.replace(data, self.params)
+            return StringTemplateReplacer.replace(self.path, data, self.params, key = kwargs.get("key"))
         return data
 
     def _transform_data(self, data: Any) -> Any:
@@ -119,7 +126,7 @@ class DataProcessor:
 
 
 def replace_template_vars(
-    data: Union[dict, list, str], params: dict
+    path: str, data: Union[dict, list, str], params: dict
 ) -> Union[dict, list, str]:
     """
     Фасад для обработки данных с правильным порядком операций:
@@ -140,5 +147,5 @@ def replace_template_vars(
     }
     params = {"name": "Alice", "num": "42"}
     """
-    processor = DataProcessor(params)
+    processor = DataProcessor(path, params)
     return processor.process(data)

@@ -12,7 +12,8 @@ from .webhook_handler import send_webhook
 from .redirect_handler import process_redirect
 from .template_processor import replace_template_vars
 from .logger import log_request_details, log_response
-from .utils.token_generator import (
+from src.helpers import get_int
+from .utils.generators import (
     generate_random_code,
     generate_access_token,
     generate_refresh_token,
@@ -364,7 +365,11 @@ class RequestHandler:
             log_response(route_config.response)
 
             logger.info(f"Отправлен ответ для {method} {full_path}")
-            return replace_template_vars(route_config.response, params)
+            result = self.processing_result(
+                path, route_config.response, route_config.model_extra, params
+            )
+
+            return result
 
         except ValueError as e:
             logger.error(f"Ошибка маршрутизации: {str(e)}")
@@ -372,6 +377,306 @@ class RequestHandler:
         except Exception as e:
             logger.error(f"Неожиданная ошибка: {str(e)}")
             raise HTTPException(status_code=500, detail=str(e))
+
+    def processing_result(self, path, response, extra, params) -> Dict[str, Any]:
+        """
+        Обработка результата с поддержкой иерархического повторения
+
+        Поддерживает вложенное повторение элементов, например:
+        - chats (повторяется N раз)
+          - users (для каждого chat повторяется M раз)
+        """
+        from src.template_processor import StringTemplateReplacer
+
+        # Если нет настроек повторения, возвращаем обычный результат
+        if not extra or not extra.get("repeat") or not extra["repeat"].get("items"):
+            return replace_template_vars(path, response, params)
+
+        try:
+            # Строим иерархию повторений
+            hierarchy = self._build_repeat_hierarchy(extra["repeat"]["items"])
+
+            # Выполняем иерархическое повторение
+            result = self._execute_hierarchical_repeat(
+                path, response, params, hierarchy
+            )
+
+            return result
+
+        except Exception as e:
+            logger.error(f"Ошибка при обработке иерархического повторения: {str(e)}")
+            raise HTTPException(status_code=500, detail=str(e))
+
+    def _build_repeat_hierarchy(self, items: list) -> list:
+        """
+        Строит универсальную иерархию элементов для повторения с поддержкой произвольной глубины
+
+        Args:
+            items: список элементов для повторения
+
+        Returns:
+            list: иерархически организованный список элементов
+        """
+        hierarchy = []
+
+        for item in items:
+            item_name = item.get("name", "")
+
+            # Разбиваем имя на части по точкам для определения иерархии
+            name_parts = item_name.split(".")
+
+            if len(name_parts) == 1:
+                # Корневой элемент
+                self._add_or_update_root_item(
+                    hierarchy, item_name, item.get("count", "1")
+                )
+            else:
+                # Вложенный элемент - строим полную цепочку
+                self._build_nested_hierarchy(
+                    hierarchy, name_parts, item.get("count", "1")
+                )
+
+        return hierarchy
+
+    def _add_or_update_root_item(self, hierarchy: list, name: str, count: str) -> None:
+        """
+        Добавляет или обновляет корневой элемент в иерархии
+
+        Args:
+            hierarchy: текущая иерархия
+            name: имя элемента
+            count: количество повторений
+        """
+        # Ищем существующий элемент
+        for existing_item in hierarchy:
+            if existing_item.get("name") == name:
+                existing_item["count"] = count
+                return
+
+        # Создаем новый корневой элемент
+        root_item = {"name": name, "count": count, "children": []}
+        hierarchy.append(root_item)
+
+    def _build_nested_hierarchy(
+        self, hierarchy: list, name_parts: list, count: str
+    ) -> None:
+        """
+        Строит вложенную иерархию для многоуровневых элементов
+
+        Args:
+            hierarchy: текущая иерархия
+            name_parts: части имени (например, ["chats", "users", "messages"])
+            count: количество повторений для последнего элемента
+        """
+        current_level = hierarchy
+        parent_name = None
+
+        # Проходим по всем уровням кроме последнего
+        for i, part in enumerate(name_parts[:-1]):
+            parent_name = part
+            child_name = name_parts[i + 1]
+
+            # Ищем родительский элемент на текущем уровне
+            parent_item = None
+            for existing_item in current_level:
+                if existing_item.get("name") == parent_name:
+                    parent_item = existing_item
+                    break
+
+            if parent_item is None:
+                # Создаем родительский элемент если его нет
+                parent_item = {
+                    "name": parent_name,
+                    "count": "1",  # По умолчанию 1
+                    "children": [],
+                }
+                current_level.append(parent_item)
+
+            # Переходим на следующий уровень
+            current_level = parent_item["children"]
+
+        # Добавляем последний элемент
+        final_child = {"name": name_parts[-1], "count": count}
+        current_level.append(final_child)
+
+    def _execute_hierarchical_repeat(
+        self, path, response, params, hierarchy
+    ) -> Dict[str, Any]:
+        """
+        Выполняет универсальное иерархическое повторение элементов
+
+        Args:
+            path: путь запроса
+            response: шаблон ответа
+            params: параметры запроса
+            hierarchy: иерархия элементов для повторения
+
+        Returns:
+            Dict[str, Any]: результат с иерархической структурой
+        """
+        from src.template_processor import StringTemplateReplacer
+
+        result = {}
+
+        for item in hierarchy:
+            item_name = item["name"]
+            count = StringTemplateReplacer.replace(path, item["count"], params)
+            count = get_int(count)
+
+            if not item.get("children"):
+                # Простое повторение без вложенности
+                results = []
+                for _ in range(count):
+                    results.append(replace_template_vars(path, response, params))
+
+                if item_name == "root":
+                    result = [item for sublist in results for item in sublist]
+                else:
+                    # Извлекаем данные по имени элемента
+                    extracted_data = self._extract_data_by_name(results, item_name)
+                    result[item_name] = extracted_data
+            else:
+                # Иерархическое повторение с вложенностью
+                parent_results = []
+
+                for _ in range(count):
+                    # Создаем родительский элемент
+                    parent_result = replace_template_vars(path, response, params)
+
+                    # Рекурсивно обрабатываем дочерние элементы
+                    nested_data = self._process_nested_children(
+                        path, response, params, item["name"], item["children"]
+                    )
+
+                    # Объединяем данные
+                    parent_result = self._merge_nested_data(
+                        parent_result, item_name, nested_data
+                    )
+                    parent_results.append(parent_result)
+
+                # Объединяем результаты родительских элементов
+                if item_name == "root":
+                    result = [item for sublist in parent_results for item in sublist]
+                else:
+                    extracted_parent_data = self._extract_data_by_name(
+                        parent_results, item_name
+                    )
+                    result[item_name] = extracted_parent_data
+
+        return result
+
+    def _process_nested_children(
+        self, path, response, params, parent_name, children
+    ) -> Dict[str, Any]:
+        """
+        Рекурсивно обрабатывает дочерние элементы
+
+        Args:
+            path: путь запроса
+            response: шаблон ответа
+            params: параметры запроса
+            children: список дочерних элементов
+
+        Returns:
+            Dict[str, Any]: данные дочерних элементов
+        """
+        from src.template_processor import StringTemplateReplacer
+
+        nested_data = {}
+
+        for child_item in children:
+            child_name = child_item["name"]
+            child_count = StringTemplateReplacer.replace(
+                path, child_item["count"], params
+            )
+            child_count = get_int(child_count)
+
+            if child_item.get("children"):
+                # Рекурсивно обрабатываем вложенные дочерние элементы
+                child_results = []
+                for _ in range(child_count):
+                    child_result = replace_template_vars(path, response, params)
+                    nested_child_data = self._process_nested_children(
+                        path, response, params, child_item["name"], child_item["children"]
+                    )
+                    child_result = self._merge_nested_data(
+                        child_result, child_name, nested_child_data
+                    )
+                    child_results.append(child_result)
+
+                extracted_child_data = self._extract_data_by_name(
+                    child_results, child_name, parent_name
+                )
+                nested_data[child_name] = extracted_child_data
+            else:
+                # Простое повторение дочернего элемента
+                child_results = []
+                for _ in range(child_count):
+                    child_results.append(replace_template_vars(path, response, params))
+
+                extracted_child_data = self._extract_data_by_name(
+                    child_results, child_name, parent_name
+                )
+                nested_data[child_name] = extracted_child_data
+
+        return nested_data
+
+    def _extract_data_by_name(self, results: list, name: str, parent_name: str = None) -> list:
+        """
+        Извлекает данные по имени элемента из списка результатов
+
+        Args:
+            results: список результатов
+            name: имя элемента для извлечения
+
+        Returns:
+            list: извлеченные данные
+        """
+        extracted_data = []
+        for res in results:
+            if parent_name:
+                if name in res[parent_name][0]:
+                    if isinstance(res[parent_name][0][name], list):
+                        extracted_data.extend(res[parent_name][0][name])
+                    else:
+                        extracted_data.append(res[parent_name][0][name])
+            else:
+                if name in res:
+                    if isinstance(res[name], list):
+                        extracted_data.extend(res[name])
+                    else:
+                        extracted_data.append(res[name])
+        return extracted_data
+
+    def _merge_nested_data(
+        self,
+        parent_result: Dict[str, Any],
+        parent_name: str,
+        nested_data: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """
+        Объединяет данные родительского элемента с вложенными данными
+
+        Args:
+            parent_result: результат родительского элемента
+            parent_name: имя родительского элемента
+            nested_data: вложенные данные
+
+        Returns:
+            Dict[str, Any]: объединенный результат
+        """
+        if parent_name in parent_result:
+            if isinstance(parent_result[parent_name], dict):
+                # Если родительский элемент - словарь, добавляем вложенные данные
+                parent_result[parent_name].update(nested_data)
+            else:
+                # Если родительский элемент не словарь, создаем новую структуру
+                parent_result[parent_name][0][list(nested_data.keys())[0]].extend(list(nested_data.values())[0])
+        else:
+            # Если родительского элемента нет, создаем его
+            parent_result[parent_name] = nested_data
+
+        return parent_result
 
     def get_route_config(self, path: str, method: str) -> RouteConfig:
         """

@@ -74,4 +74,3 @@ routes:
           scope: "messenger:read,messenger:write"
           token_type: "Bearer"
 
-  

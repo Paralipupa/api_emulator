@@ -1,4 +1,134 @@
 routes:
+  # Получение информации по чатам 
+  - path: /messenger/v2/accounts/{user_id}/chats
+    methods:
+      - method: GET
+        request_schema:
+          type: object
+          properties:
+            item_ids:  
+              type: array
+              items:
+                type: integer
+              description: "Получение чатов только по объявлениям с указанными item_id"
+              example: items=12345,6789
+            unread_only:
+              type: boolean
+              default: false
+              description: "При значении true метод возвращает только непрочитанные чаты"
+            chat_types:
+              type: array
+              items:
+                type: string
+                default: u2i
+              description: "Типы чатов"
+              example: chat_types=u2i,u2u
+            limit:
+              type: integer
+              default: 20
+              description: "Ограничение на количество возвращаемых чатов"
+            offset:
+              type: integer
+              default: 0
+              description: "Смещение возвращаемых чатов"
+        repeat: 
+          items:
+            - name: chats
+              count: "{$random_3}"            
+            - name: chats.users
+              count: "9"            
+        response:
+          chats:
+            - context:
+                type: item
+                value:
+                  id: "{$random_9}"
+                  images:
+                    count: 4
+                    main:
+                      140x105: "https://01-img-staging-proxy.k.avito.ru/140x105/5815183159.jpg"
+                  price_string: "300 000 ₽"
+                  status_id: 10
+                  title: "Mazda 3 2008"
+                  url: "https://avito.ru/moskva/avtomobili/mazda_3_2008_1768287444"
+                  user_id: "{$random_code}"
+              created: 
+                value: "{$current_timestamp}"
+                type: integer
+              id:
+                value: "{$random_9}"
+                type: "string"
+              last_message:
+                author_id: "{$random_code}"
+                content:
+                  call:
+                    status: "missed"
+                    target_user_id: "{$random_code}"
+                  flow_id: "seller_audience_discount"
+                  image:
+                    sizes:
+                      1280x960: "https://img.k.avito.ru/chat/1280x960/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg"
+                      140x105: "https://img.k.avito.ru/chat/140x105/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg"
+                      32x32: "https://img.k.avito.ru/chat/32x32/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg"
+                      640x480: "https://img.k.avito.ru/chat/640x480/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg"
+                  item:
+                    image_url: "https://avito.ru/image_url.webp"
+                    item_url: "https://avito.ru/item_url"
+                    price_string: "1 232 323 ₽"
+                    title: "Объявление"
+                  link:
+                    preview:
+                      description: "Лучшие публикации за последние 24 часа"
+                      domain: "habr.com"
+                      images:
+                        1280x960: "https://img.k.avito.ru/chat/1280x960/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg"
+                        140x105: "https://img.k.avito.ru/chat/140x105/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg"
+                        32x32: "https://img.k.avito.ru/chat/32x32/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg"
+                        640x480: "https://img.k.avito.ru/chat/640x480/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg"
+                      title: "Лучшие публикации за сутки / Хабр"
+                      url: "https://habr.com/ru/"
+                    text: "habr.com {$text}"
+                    url: "habr.com"
+                  location:
+                    kind: "street"
+                    lat: 55.599799
+                    lon: 37.603954
+                    text: "Москва, Варшавское шоссе"
+                    title: "Москва, Варшавское шоссе"
+                  text: "привет!"
+                  voice:
+                    voice_id: "string"
+                created: 
+                  value: "{$current_timestamp}"
+                  type: "integer"
+                direction: "out"
+                id: "string"
+                type: "link"
+              updated: 
+                  value: "{$current_timestamp}"
+                  type: "integer"
+              users:
+                - id: 
+                    value: "{$next_id}"
+                    type: "string"
+                  name: "Guldan {$text}"
+                  public_user_profile:
+                    avatar:
+                      default: "https://www.avito.st/stub_avatars/_/14_256x256.png"
+                      images:
+                        128x128: "https://www.avito.st/stub_avatars/_/14_128x128.png"
+                        192x192: "https://www.avito.st/stub_avatars/_/14_192x192.png"
+                        24x24: "https://www.avito.st/stub_avatars/_/14_24x24.png"
+                        256x256: "https://www.avito.st/stub_avatars/_/14_256x256.png"
+                        36x36: "https://www.avito.st/stub_avatars/_/14_36x36.png"
+                        48x48: "https://www.avito.st/stub_avatars/_/14_48x48.png"
+                        64x64: "https://www.avito.st/stub_avatars/_/14_64x64.png"
+                        72x72: "https://www.avito.st/stub_avatars/_/14_72x72.png"
+                        96x96: "https://www.avito.st/stub_avatars/_/14_96x96.png"
+                    item_id: "{$random_code}"
+                    url: "https://avito.ru/user/db65c00c946dc404e11f14755465453b/profile"
+                    user_id: "{$random_9}"
+
   # Отправка текстового сообщения
   - path: /messenger/v1/accounts/{user_id}/chats/{chat_id}/messages
     methods:
@@ -15,13 +145,13 @@ routes:
               type: string
               enum: [text]
               description: "Тип отзыва"
-          required: [message, type, message.text]
+          required: [message, type]
         response:
           content:
             text: "привет"
           created: 
             value: "{$current_timestamp}" 
-            type: int
+            type: integer
           direction: "out"
           id: "{$hash}"
           type: "text"
@@ -41,7 +171,7 @@ routes:
         response:
           author_id: 
             value: "{$random_code}"
-            type: int
+            type: integer
           content:
             image:
               sizes:
@@ -50,7 +180,7 @@ routes:
                 32x32: "https://example.hosts.ru/image_32_32.png" 
           created: 
             value: "{$current_timestamp}"
-            type: int
+            type: integer
           direction: "out"
           id: "{$hash}"
           type: "image"
@@ -148,15 +278,19 @@ routes:
           type: object
           properties:
             limit:  
-              type: int
+              type: integer
             offset:  
-              type: int
+              type: integer        
+        repeat: 
+          items:
+            - name: root
+              count: "{$random_3}"
         response: 
-            - author_id: 94235311
+            - author_id: "{$random_code}"
               content:
                 call:
                   status: missed
-                  target_user_id: 94235311
+                  target_user_id: "{$random_code}"
                 flow_id: seller_audience_discount
                 image:
                   sizes:
@@ -180,7 +314,8 @@ routes:
                       640x480: "https://img.k.avito.ru/chat/640x480/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg" 
                     title: "Лучшие публикации за сутки / Хабр"
                     url: "https://habr.com/ru/" 
-                  text: "habr.com"
+                  text: "habr.com {$text}"
+                  title: "habr.com {$text}"
                   url: "habr.com"
                 location:
                   kind: street
@@ -193,20 +328,20 @@ routes:
                   voice_id: "string"
               created: 
                 value: "{$current_timestamp}"
-                type: int
+                type: integer
               direction: "out"
               id: "{$hash}"
               is_read: true
               quote:
                 author_id: 
                   value: "{$random_code}"
-                  type: int
+                  type: integer
                 content:
                   call:
                     status: missed
                     target_user_id: 
                       value: "{$random_code}"
-                      type: int
+                      type: integer
                   flow_id: seller_audience_discount
                   image:
                     sizes:
@@ -243,7 +378,7 @@ routes:
                     voice_id: "string"
                 created: 
                   value: "{$current_timestamp}"
-                  type: int
+                  type: integer
                 id: "string"
                 type: "text"
               read: 123

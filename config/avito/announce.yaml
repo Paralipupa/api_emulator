@@ -8,16 +8,16 @@ routes:
           type: object
           properties: 
             per_page:
-              type: int
+              type: integer
             page:
-              type: int
+              type: integer
             status:
               type: string
             updatedAtFrom:
               type: string
               format: "%Y-%m-%d"
             category:
-              type: int
+              type: integer
         response:
           meta:
             page: 1

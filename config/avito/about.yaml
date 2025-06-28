@@ -4,10 +4,11 @@ routes:
     methods:
       - method: GET
         response:
-          email: "example@domain.com"
-          id: 94235311
-          name: "Петр"
-          phone: 71112223344
+          email: example@domain.com
+          id: "{$random_code}"
+          name: Петр
+          phone: "+79994{$random_code}"
           phones:
-            - "71112223344"
-          profile_url: "https://avito.ru/user/7d04cdc3a12726eee72c6851c953ac54/profile" 
+          - '+79053{$random_code}'
+          profile_url: https://avito.ru/user/7d04cdc3a12726eee72c6851c953ac54/profile
+  

@@ -1,6 +1,6 @@
 routes:
 # Отправка ответа на отзыв
-  - path: /ratings/v1/answer
+  - path: /ratings/v1/answers
     methods:
       - method: POST
         content_type: application/json
@@ -11,16 +11,16 @@ routes:
               type: string
               description: "Ответ на отзыв"
             reviewId:
-              type: int
+              type: integer
               description: "Идентификатор отзыва"
           required: [message, reviewId]
         response:
           createdAt: 
             value: "{$current_timestamp}" 
-            type: int
+            type: integer
           id: 
             value: "{$random_code}"
-            type: int
+            type: integer
 
 # Запрос на удаление ответа на отзыв
   - path: /ratings/v1/answer/{reviewId}
@@ -40,26 +40,26 @@ routes:
             - answer:
                 createdAt: 
                   value: "{$current_timestamp}" 
-                  type: int
+                  type: integer
                 id: 
                   value: "{$random_code}"
-                  type: int
+                  type: integer
                 reject_reasons:
                   - id: 
                       value: "{$random_code}"
-                      type: int
+                      type: integer
                     title: "Нецензурная лексика"
                 status: "published"
                 text: "Спасибо за отзыв!"
               canAnswer: true
               createdAt: 
                 value: "{$current_timestamp}"
-                type: int
+                type: integer
               extraParams:
                 vin: "4Y1SL65848Z411439"
               id:
                 value: "{$random_code}"
-                type: int
+                type: integer
               images:
                 - number: 1
                   sizes:
@@ -68,7 +68,7 @@ routes:
               item:
                 id:
                   value: "{$random_code}"
-                  type: int
+                  type: integer
                 title: "Автомобиль 2020-го года"
               score: 5
               sender:

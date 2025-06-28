@@ -7,14 +7,19 @@ import logging
 from typing import Dict, Any, Optional, List
 from urllib.parse import urlencode
 from .config_loader import RedirectParameter
-from .utils.token_generator import (
+from .utils.generators import (
     generate_access_token,
     generate_refresh_token,
     generate_token_pair,
     generate_verification_code,
     generate_session_id,
     generate_hex_string,
-    generate_random_code
+    generate_random_code,
+    generate_next_id,
+    generate_random_3,
+    generate_random_6,
+    generate_random_9,
+    generate_string
 )
 from .utils.common_data import get_webhook_url, get_current_timestamp
 
@@ -30,7 +35,12 @@ AVAILABLE_FUNCTIONS = {
     'hash': generate_hex_string,
     'random_code': generate_random_code,
     'webhook_url': get_webhook_url,
-    'current_timestamp': get_current_timestamp
+    'current_timestamp': get_current_timestamp,
+    'next_id': generate_next_id,
+    'random_3': generate_random_3,
+    'random_6': generate_random_6,
+    'random_9': generate_random_9,
+    'text': generate_string
 }
 
 async def process_redirect(
