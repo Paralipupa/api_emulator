@@ -17,23 +17,23 @@ class ValueTransformer(ABC):
 
 
 class TypedValueTransformer(ValueTransformer):
-    """Преобразует словари с полями value и type, включая datetime"""
+    """Преобразует словари с полями _value и _type, включая datetime"""
 
     def __init__(self, path: str) -> None:
         self.path = path
         super().__init__()
 
     def can_transform(self, data: Dict) -> bool:
-        return isinstance(data, dict) and "value" in data and "type" in data
+        return isinstance(data, dict) and "_value" in data and "_type" in data
 
     def transform(self, data: Dict, params: Dict) -> Any:
-        # Сначала выполняем подстановку в value
+        # Сначала выполняем подстановку в _value
         processed_value = StringTemplateReplacer.replace(
-            self.path, data["value"], params
+            self.path, data["_value"], params
         )
 
         try:
-            target_type = data["type"].lower()
+            target_type = data["_type"].lower()
             if target_type == "int":
                 return int(processed_value)
             elif target_type == "float":
@@ -50,18 +50,18 @@ class TypedValueTransformer(ValueTransformer):
         except (ValueError, TypeError):
             return processed_value
 
-    def _parse_datetime(self, value: Any, format_str: str = None) -> datetime:
-        if isinstance(value, (int, float)):
-            return datetime.fromtimestamp(value)
-        elif isinstance(value, str):
+    def _parse_datetime(self, _value: Any, format_str: str = None) -> datetime:
+        if isinstance(_value, (int, float)):
+            return datetime.fromtimestamp(_value)
+        elif isinstance(_value, str):
             if format_str:
-                timestamp = float(value)
+                timestamp = float(_value)
                 dt = datetime.fromtimestamp(timestamp)
                 return dt.strftime(format_str)
-            return datetime.fromisoformat(value)
-        elif isinstance(value, datetime):
-            return value
-        raise ValueError(f"Cannot convert {value} to datetime")
+            return datetime.fromisoformat(_value)
+        elif isinstance(_value, datetime):
+            return _value
+        raise ValueError(f"Cannot convert {_value} to datetime")
 
 
 class StringTemplateReplacer:
@@ -72,8 +72,8 @@ class StringTemplateReplacer:
         if not isinstance(data, str):
             return data
 
-        for key, value in params.items():
-            data = data.replace(f"{{{key}}}", str(value))
+        for key, _value in params.items():
+            data = data.replace(f"{{{key}}}", str(_value))
 
         for func_name, func in AVAILABLE_FUNCTIONS.items():
             if f"{{${func_name}}}" in data:
@@ -137,12 +137,12 @@ def replace_template_vars(
     data = {
         "message": "Hello {name}",
         "count": {
-            "value": "{num}",
-            "type": "int"
+            "_value": "{num}",
+            "_type": "int"
         },
         "date": {
-            "value": "2023-01-15",
-            "type": "datetime"
+            "_value": "2023-01-15",
+            "_type": "datetime"
         }
     }
     params = {"name": "Alice", "num": "42"}

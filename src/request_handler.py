@@ -5,7 +5,7 @@
 import json
 import logging
 from fastapi import Request, HTTPException, Form
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, Callable, Union
 from datetime import datetime
 from .config_loader import RouteConfig
 from .webhook_handler import send_webhook
@@ -21,8 +21,45 @@ from .utils.generators import (
     generate_verification_code,
 )
 from pydantic import BaseModel, ValidationError
+from src.rate_limit import rate_limit
+import time
+from functools import wraps
+from threading import Lock
 
 logger = logging.getLogger(__name__)
+
+# Глобальный кэш для хранения временных меток запросов
+rate_limit_cache = {}
+cache_lock = Lock()
+
+def rate_limit(key_prefix: Union[str, Callable[[Request], str]], limit: int, period_sec: int):
+    """
+    Декоратор для ограничения количества запросов.
+    :param key_prefix: строка или функция, принимающая request и возвращающая строку
+    :param limit: Максимальное количество запросов
+    :param period_sec: Период в секундах
+    """
+    def decorator(func):
+        @wraps(func)
+        async def wrapper(self, request: Request, *args, **kwargs):
+            # Получаем динамический или статический префикс
+            prefix = key_prefix(request) if callable(key_prefix) else key_prefix
+            # Получаем user_id из параметров пути или IP клиента
+            user_id = request.path_params.get("user_id") or request.client.host
+            key = f"{prefix}:{user_id}"
+            now = int(time.time())
+            with cache_lock:
+                timestamps = rate_limit_cache.get(key, [])
+                # Оставляем только те, что в пределах периода
+                timestamps = [ts for ts in timestamps if ts > now - period_sec]
+                if len(timestamps) >= limit:
+                    # Превышен лимит запросов
+                    raise HTTPException(status_code=429, detail="Превышен лимит запросов")
+                timestamps.append(now)
+                rate_limit_cache[key] = timestamps
+            return await func(self, request, *args, **kwargs)
+        return wrapper
+    return decorator
 
 
 class RequestHandler:
@@ -319,6 +356,7 @@ class RequestHandler:
             error_response = self._create_validation_error_response(e, data, schema)
             raise HTTPException(status_code=400, detail=error_response)
 
+    @rate_limit(key_prefix=lambda req: f"request:{req.url.path}", limit=5, period_sec=3600)
     async def process_request(self, request: Request, path: str) -> Dict[str, Any]:
         """
         Обработка HTTP запроса
@@ -369,14 +407,15 @@ class RequestHandler:
                 path, route_config.response, route_config.model_extra, params
             )
 
+            # raise
             return result
 
         except ValueError as e:
             logger.error(f"Ошибка маршрутизации: {str(e)}")
-            raise HTTPException(status_code=404, detail=str(e))
+            raise HTTPException(status_code=403, detail=str(e))
         except Exception as e:
             logger.error(f"Неожиданная ошибка: {str(e)}")
-            raise HTTPException(status_code=500, detail=str(e))
+            raise HTTPException(status_code=403, detail=str(e))
 
     def processing_result(self, path, response, extra, params) -> Dict[str, Any]:
         """

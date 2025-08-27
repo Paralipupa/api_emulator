@@ -51,19 +51,19 @@ routes:
                   status_id: 10
                   title: "Mazda 3 2008"
                   url: "https://avito.ru/moskva/avtomobili/mazda_3_2008_1768287444"
-                  user_id: "{$random_code}"
+                  user_id: "{$random_9}"
               created: 
-                value: "{$current_timestamp}"
-                type: integer
+                _value: "{$current_timestamp}"
+                _type: integer
               id:
-                value: "{$random_9}"
-                type: "string"
+                _value: "{$random_9}"
+                _type: "string"
               last_message:
-                author_id: "{$random_code}"
+                author_id: "{$random_9}"
                 content:
                   call:
                     status: "missed"
-                    target_user_id: "{$random_code}"
+                    target_user_id: "{$random_9}"
                   flow_id: "seller_audience_discount"
                   image:
                     sizes:
@@ -99,18 +99,18 @@ routes:
                   voice:
                     voice_id: "string"
                 created: 
-                  value: "{$current_timestamp}"
-                  type: "integer"
+                  _value: "{$current_timestamp}"
+                  _type: "integer"
                 direction: "out"
                 id: "string"
                 type: "link"
               updated: 
-                  value: "{$current_timestamp}"
-                  type: "integer"
+                  _value: "{$current_timestamp}"
+                  _type: "integer"
               users:
                 - id: 
-                    value: "{$next_id}"
-                    type: "string"
+                    _value: "{$next_id}"
+                    _type: "string"
                   name: "Guldan {$text}"
                   public_user_profile:
                     avatar:
@@ -128,6 +128,93 @@ routes:
                     item_id: "{$random_code}"
                     url: "https://avito.ru/user/db65c00c946dc404e11f14755465453b/profile"
                     user_id: "{$random_9}"
+
+  # Получение информации по чату 
+  - path: /messenger/v2/accounts/{user_id}/chats/{chat_id}
+    methods:
+      - method: GET
+        throttle: 4/hour
+        response:
+          context:
+            type: item
+            value:
+              id: 1768287444
+              images:
+                count: 4
+                main:
+                  140x105: "https://01-img-staging-proxy.k.avito.ru/140x105/5815183159.jpg"
+              price_string: "300 000 ₽"
+              status_id: 10
+              title: "Mazda 3 2008"
+              url: "https://avito.ru/moskva/avtomobili/mazda_3_2008_1768287444"
+              user_id: 141906442
+          created: 1571412836
+          id: "string"
+          last_message:
+            author_id: 186445007
+            content:
+              call:
+                status: "missed"
+                target_user_id: 94235311
+              flow_id: "seller_audience_discount"
+              image:
+                sizes:
+                  1280x960: "https://img.k.avito.ru/chat/1280x960/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg"
+                  140x105: "https://img.k.avito.ru/chat/140x105/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg"
+                  32x32: "https://img.k.avito.ru/chat/32x32/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg"
+                  640x480: "https://img.k.avito.ru/chat/640x480/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg"
+              item:
+                image_url: "https://avito.ru/image_url.webp"
+                item_url: "https://avito.ru/item_url"
+                price_string: "1 232 323 ₽"
+                title: "Объявление"
+              link:
+                preview:
+                  description: "Лучшие публикации за последние 24 часа"
+                  domain: "habr.com"
+                  images:
+                    1280x960: "https://img.k.avito.ru/chat/1280x960/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg"
+                    140x105: "https://img.k.avito.ru/chat/140x105/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg"
+                    32x32: "https://img.k.avito.ru/chat/32x32/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg"
+                    640x480: "https://img.k.avito.ru/chat/640x480/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg"
+                  title: "Лучшие публикации за сутки / Хабр"
+                  url: "https://habr.com/ru/"
+                text: "habr.com"
+                url: "habr.com"
+              location:
+                kind: "street"
+                lat: 55.599799
+                lon: 37.603954
+                text: "Москва, Варшавское шоссе"
+                title: "Москва, Варшавское шоссе"
+              text: "привет!"
+              voice:
+                voice_id: "string"
+            created: 1571654040
+            direction: "out"
+            id: "string"
+            type: "link"
+          updated: 1571654040
+          users:
+            - id: 94235311
+              name: "Guldan"
+              public_user_profile:
+                avatar:
+                  default: "https://www.avito.st/stub_avatars/_/14_256x256.png"
+                  images:
+                    128x128: "https://www.avito.st/stub_avatars/_/14_128x128.png"
+                    192x192: "https://www.avito.st/stub_avatars/_/14_192x192.png"
+                    24x24: "https://www.avito.st/stub_avatars/_/14_24x24.png"
+                    256x256: "https://www.avito.st/stub_avatars/_/14_256x256.png"
+                    36x36: "https://www.avito.st/stub_avatars/_/14_36x36.png"
+                    48x48: "https://www.avito.st/stub_avatars/_/14_48x48.png"
+                    64x64: "https://www.avito.st/stub_avatars/_/14_64x64.png"
+                    72x72: "https://www.avito.st/stub_avatars/_/14_72x72.png"
+                    96x96: "https://www.avito.st/stub_avatars/_/14_96x96.png"
+                item_id: 1768287444
+                url: "https://avito.ru/user/db65c00c946dc404e11f14755465453b/profile"
+                user_id: 94235311
+
 
   # Отправка текстового сообщения
   - path: /messenger/v1/accounts/{user_id}/chats/{chat_id}/messages
@@ -150,8 +237,8 @@ routes:
           content:
             text: "привет"
           created: 
-            value: "{$current_timestamp}" 
-            type: integer
+            _value: "{$current_timestamp}" 
+            _type: integer
           direction: "out"
           id: "{$hash}"
           type: "text"
@@ -170,8 +257,8 @@ routes:
           required: [image_id]
         response:
           author_id: 
-            value: "{$random_code}"
-            type: integer
+            _value: "{$random_9}"
+            _type: integer
           content:
             image:
               sizes:
@@ -179,8 +266,8 @@ routes:
                 140x105: "https://example.hosts.ru/image_140_105.png" 
                 32x32: "https://example.hosts.ru/image_32_32.png" 
           created: 
-            value: "{$current_timestamp}"
-            type: integer
+            _value: "{$current_timestamp}"
+            _type: integer
           direction: "out"
           id: "{$hash}"
           type: "image"
@@ -283,65 +370,17 @@ routes:
               type: integer        
         repeat: 
           items:
-            - name: root
+            - name: messages
               count: "{$random_3}"
         response: 
-            - author_id: "{$random_code}"
-              content:
-                call:
-                  status: missed
-                  target_user_id: "{$random_code}"
-                flow_id: seller_audience_discount
-                image:
-                  sizes:
-                    1280x960: "https://img.k.avito.ru/chat/1280x960/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg" 
-                    140x105: "https://img.k.avito.ru/chat/140x105/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg" 
-                    32x32: "https://img.k.avito.ru/chat/32x32/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg" 
-                    640x480: "https://img.k.avito.ru/chat/640x480/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg" 
-                item:
-                  image_url: "https://avito.ru/image_url.webp" 
-                  item_url: "https://avito.ru/item_url" 
-                  price_string: "1 232 323 ₽"
-                  title: "Объявление"
-                link:
-                  preview:
-                    description: "Лучшие публикации за последние 24 часа"
-                    domain: "habr.com"
-                    images:
-                      1280x960: "https://img.k.avito.ru/chat/1280x960/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg" 
-                      140x105: "https://img.k.avito.ru/chat/140x105/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg" 
-                      32x32: "https://img.k.avito.ru/chat/32x32/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg" 
-                      640x480: "https://img.k.avito.ru/chat/640x480/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg" 
-                    title: "Лучшие публикации за сутки / Хабр"
-                    url: "https://habr.com/ru/" 
-                  text: "habr.com {$text}"
-                  title: "habr.com {$text}"
-                  url: "habr.com"
-                location:
-                  kind: street
-                  lat: 55.599799
-                  lon: 37.603954
-                  text: "Москва, Варшавское шоссе"
-                  title: "Москва, Варшавское шоссе"
-                text: "привет!"
-                voice:
-                  voice_id: "string"
-              created: 
-                value: "{$current_timestamp}"
-                type: integer
-              direction: "out"
-              id: "{$hash}"
-              is_read: true
-              quote:
-                author_id: 
-                  value: "{$random_code}"
-                  type: integer
+            messages:
+              - author_id: 
+                  _value: "{$random_9}"
+                  _type: integer
                 content:
                   call:
                     status: missed
-                    target_user_id: 
-                      value: "{$random_code}"
-                      type: integer
+                    target_user_id: "{$random_9}"
                   flow_id: seller_audience_discount
                   image:
                     sizes:
@@ -365,7 +404,8 @@ routes:
                         640x480: "https://img.k.avito.ru/chat/640x480/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg" 
                       title: "Лучшие публикации за сутки / Хабр"
                       url: "https://habr.com/ru/" 
-                    text: "habr.com"
+                    text: "habr.com {$text}"
+                    title: "habr.com {$text}"
                     url: "habr.com"
                   location:
                     kind: street
@@ -377,9 +417,61 @@ routes:
                   voice:
                     voice_id: "string"
                 created: 
-                  value: "{$current_timestamp}"
-                  type: integer
-                id: "string"
+                  _value: "{$current_timestamp}"
+                  _type: integer
+                direction: "in"
+                id: "{$random_9}"
+                isRead: false
+                quote:
+                  author_id: 
+                    _value: "{$random_9}"
+                    _type: integer
+                  content:
+                    call:
+                      status: missed
+                      target_user_id: 
+                        _value: "{$random_9}"
+                        _type: integer
+                    flow_id: seller_audience_discount
+                    image:
+                      sizes:
+                        1280x960: "https://img.k.avito.ru/chat/1280x960/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg" 
+                        140x105: "https://img.k.avito.ru/chat/140x105/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg" 
+                        32x32: "https://img.k.avito.ru/chat/32x32/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg" 
+                        640x480: "https://img.k.avito.ru/chat/640x480/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg" 
+                    item:
+                      image_url: "https://avito.ru/image_url.webp" 
+                      item_url: "https://avito.ru/item_url" 
+                      price_string: "1 232 323 ₽"
+                      title: "Объявление"
+                    link:
+                      preview:
+                        description: "Лучшие публикации за последние 24 часа"
+                        domain: "habr.com"
+                        images:
+                          1280x960: "https://img.k.avito.ru/chat/1280x960/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg" 
+                          140x105: "https://img.k.avito.ru/chat/140x105/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg" 
+                          32x32: "https://img.k.avito.ru/chat/32x32/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg" 
+                          640x480: "https://img.k.avito.ru/chat/640x480/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg" 
+                        title: "Лучшие публикации за сутки / Хабр"
+                        url: "https://habr.com/ru/" 
+                      text: "habr.com"
+                      url: "habr.com"
+                    location:
+                      kind: street
+                      lat: 55.599799
+                      lon: 37.603954
+                      text: "Москва, Варшавское шоссе"
+                      title: "Москва, Варшавское шоссе"
+                    text: "привет!"
+                    voice:
+                      voice_id: "string"
+                  created: 
+                    _value: "{$current_timestamp}"
+                    _type: integer
+                  id: "string"
+                  type: "text"
+                read: 
+                  _value: "{$current_timestamp}"
+                  _type: integer
                 type: "text"
-              read: 123
-              type: "text"

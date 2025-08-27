@@ -16,11 +16,11 @@ routes:
           required: [message, reviewId]
         response:
           createdAt: 
-            value: "{$current_timestamp}" 
-            type: integer
+            _value: "{$current_timestamp}" 
+            _type: integer
           id: 
-            value: "{$random_code}"
-            type: integer
+            _value: "{$random_code}"
+            _type: integer
 
 # Запрос на удаление ответа на отзыв
   - path: /ratings/v1/answer/{reviewId}
@@ -39,27 +39,27 @@ routes:
           reviews:
             - answer:
                 createdAt: 
-                  value: "{$current_timestamp}" 
-                  type: integer
+                  _value: "{$current_timestamp}" 
+                  _type: integer
                 id: 
-                  value: "{$random_code}"
-                  type: integer
+                  _value: "{$random_code}"
+                  _type: integer
                 reject_reasons:
                   - id: 
-                      value: "{$random_code}"
-                      type: integer
+                      _value: "{$random_code}"
+                      _type: integer
                     title: "Нецензурная лексика"
                 status: "published"
                 text: "Спасибо за отзыв!"
               canAnswer: true
               createdAt: 
-                value: "{$current_timestamp}"
-                type: integer
+                _value: "{$current_timestamp}"
+                _type: integer
               extraParams:
                 vin: "4Y1SL65848Z411439"
               id:
-                value: "{$random_code}"
-                type: integer
+                _value: "{$random_code}"
+                _type: integer
               images:
                 - number: 1
                   sizes:
@@ -67,8 +67,8 @@ routes:
                       url: "http://img.avito.ru/100x100/4Y1SL65848Z411439.jpg"
               item:
                 id:
-                  value: "{$random_code}"
-                  type: integer
+                  _value: "{$random_code}"
+                  _type: integer
                 title: "Автомобиль 2020-го года"
               score: 5
               sender:
